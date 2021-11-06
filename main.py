@@ -1,14 +1,15 @@
 import os
-import requests
 from flask import Flask, render_template, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy import PickleType, func
+from library_manager import get_new_books
 
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
 # Generated from terminal: python -c "import secrets; print(secrets.token_urlsafe(32))"
+app.config["JSON_SORT_KEYS"] = False
 
 # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///library.db'
@@ -34,47 +35,6 @@ class Book(db.Model):
                f" categories: {self.categories}, avg_rating: {self.average_rating}," \
                f" ratings count: {self.ratings_count}, thumbnail: {self.thumbnail}"
 
-    def to_dict(self):
-        """Creat dictionary using given Model"""
-        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
-
-
-def get_new_books():
-    lib_data = requests.get('https://www.googleapis.com/books/v1/volumes?q=Hobbit').json()['items']
-    for item in lib_data:
-
-        new_title = item['volumeInfo']['title']
-        new_authors = item['volumeInfo']['authors']
-        new_date = item['volumeInfo']['publishedDate']
-        try:
-            new_category = item['volumeInfo']['categories']
-        except KeyError:
-            new_category = []
-        try:
-            new_avg_rating = item['volumeInfo']['averageRating']
-        except KeyError:
-            new_avg_rating = 0
-        try:
-            new_rating_count = item['volumeInfo']['ratingsCount']
-        except KeyError:
-            new_rating_count = 0
-        try:
-            new_thumbnail = item['volumeInfo']['imageLinks']['thumbnail']
-        except KeyError:
-            new_thumbnail = ""
-
-        new_book = Book(
-            title=new_title,
-            authors=new_authors,
-            published_date=new_date,
-            categories=new_category,
-            average_rating=new_avg_rating,
-            ratings_count=new_rating_count,
-            thumbnail=new_thumbnail
-        )
-        print(new_book)
-        db.session.add(new_book)
-        db.session.commit()
 
 # Run only once to create data base
 db.create_all()
@@ -87,15 +47,22 @@ def home():
 
 @app.route('/books')
 def all_books():
-    lib_data = requests.get('https://www.googleapis.com/books/v1/volumes?q=Hobbit').json()['items'][0]
-    print(lib_data)
-    get_new_books()
-    return render_template("all-books.html", books=lib_data)
+    get_new_books(book=Book, link='https://www.googleapis.com/books/v1/volumes?q=Hobbit', db=db)
+    return render_template("all-books.html")
+
 
 @app.route('/random')
 def random():
-    random_book = Book.query.order_by(func.random()).first()  # get random cafe from DB
-    return jsonify(cafe=random_book.to_dict())
+    selected_book = Book.query.order_by(func.random()).first()
+    return jsonify(title=selected_book.title,
+                   authors=selected_book.authors,
+                   published_date=selected_book.published_date,
+                   categories=selected_book.categories,
+                   average_rating=selected_book.average_rating,
+                   ratings_count=selected_book.ratings_count,
+                   thumbnail=selected_book.thumbnail
+                   )
+
 
 # MAIN
 if __name__ == "__main__":
