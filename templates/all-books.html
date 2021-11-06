@@ -8,14 +8,24 @@
 <div>
     <h1>All Books</h1>
 </div>
-<!--</div>-->
-<!--    {% for book in books: %}-->
-<!--    <div class="content">-->
-<!--        <div class="card">-->
-<!--            <h2>{{book["title"]}}</h2>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    {% endfor %}-->
-<!--</div>-->
+<table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>title</th>
+                <th>authors</th>
+                <th><a href="{{url_for('show_all_books', sort_by='published_date') }}">published_date</a></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in books %}
+            <tr>
+                <td><a href="{{url_for('book_details', bookid=item.id) }}">{{item.title}}</a></td>
+                <td>{{item.authors}}</td>
+                <td>{{item.published_date}}</td>
+            </tr>
+
+            {% endfor %}
+        </tbody>
+    </table><br>
 </body>
 </html>
