@@ -1,5 +1,5 @@
 import requests
-
+from sqlalchemy.exc import IntegrityError
 
 def get_new_books(book, link, db):
     lib_data = requests.get(link).json()['items']
@@ -38,5 +38,18 @@ def get_new_books(book, link, db):
             ratings_count=new_rating_count,
             thumbnail=new_thumbnail
         )
-        db.session.add(new_book)
-        db.session.commit()
+        book_exists = book.query.filter_by(title=new_title, authors=new_authors).first()
+        if book_exists:
+            setattr(book_exists, 'title', new_book.title)
+            setattr(book_exists, 'authors', new_book.authors)
+            setattr(book_exists, 'published_date', new_book.published_date)
+            setattr(book_exists, 'categories', new_book.categories)
+            setattr(book_exists, 'average_rating', new_book.average_rating)
+            setattr(book_exists, 'ratings_count', new_book.ratings_count)
+            setattr(book_exists, 'thumbnail', new_book.thumbnail)
+            db.session.commit()
+        else:
+            db.session.add(new_book)
+            db.session.commit()
+        # book.query.filter_by(title=new_title).first()
+

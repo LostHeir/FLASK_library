@@ -3,6 +3,7 @@ from flask import Flask, render_template, redirect, url_for, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from library_manager import get_new_books
 
+DOWNLOAD_LINK = 'https://www.googleapis.com/books/v1/volumes?q='
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
@@ -45,7 +46,6 @@ def home():
 
 @app.route('/books')
 def show_all_books():
-    # get_new_books(book=Book, link='https://www.googleapis.com/books/v1/volumes?q=Hobbit', db=db)
     sort_by = request.args.get('sort_by')
     author = request.args.get('author')
     if author:
@@ -66,6 +66,18 @@ def book_details(bookid):
                    ratings_count=selected_book.ratings_count,
                    thumbnail=selected_book.thumbnail
                    )
+
+
+@app.route('/library', methods=['POST'])
+def add_books():
+    if request.method == 'POST':
+        query = request.form.get('q')
+        link = DOWNLOAD_LINK + query
+        try:
+            get_new_books(book=Book, link=link, db=db)
+        except KeyError:
+            return jsonify(response=dict(failure=f"Sorry we don't have {query} in our library :("))
+    return url_for('show_all_books')
 
 
 # MAIN
