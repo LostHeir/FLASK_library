@@ -3,15 +3,19 @@ import requests
 
 def get_new_books(book, link, db):
     lib_data = requests.get(link).json()['items']
-    for item in lib_data:
 
+    for item in lib_data:
+        new_authors = ""
+        new_category = ""
         new_title = item['volumeInfo']['title']
-        new_authors = item['volumeInfo']['authors']
+        for author in item['volumeInfo']['authors']:
+            new_authors = new_authors + author
         new_date = item['volumeInfo']['publishedDate']
         try:
-            new_category = item['volumeInfo']['categories']
+            for category in item['volumeInfo']['categories']:
+                new_category = new_category + category
         except KeyError:
-            new_category = []
+            new_category = ""
         try:
             new_avg_rating = item['volumeInfo']['averageRating']
         except KeyError:
