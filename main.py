@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, redirect, url_for, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from library_manager import get_new_books
 
 DOWNLOAD_LINK = 'https://www.googleapis.com/books/v1/volumes?q='
@@ -23,7 +24,8 @@ class Book(db.Model):
 
     title = db.Column(db.String(250), nullable=False)
     authors = db.Column(db.String(250), nullable=False)
-    published_date = db.Column(db.Integer,  nullable=False)
+    published_date = db.Column(db.Date,  nullable=False)
+    date_to_disp = db.Column(db.String(1), nullable=True)
     categories = db.Column(db.String(250), nullable=False)
     average_rating = db.Column(db.Integer, nullable=True)
     ratings_count = db.Column(db.Integer, nullable=True)
@@ -46,12 +48,35 @@ def home():
 
 @app.route('/books')
 def show_all_books():
-    sort_by = request.args.get('sort_by')
-    author = request.args.get('author')
-    if author:
-        all_books = Book.query.filter_by(authors=author)
+    sort_by = request.args.get('sort_by', None)
+    authors = request.args.getlist('author')
+    published_date = request.args.get('published_date', None)
+    if authors:
+        try:
+            all_books = Book.query.filter(or_(Book.authors == authors[0], Book.authors == authors[1]))
+        except IndexError:
+            all_books = Book.query.filter(Book.authors == authors[0])
+    elif published_date:
+        published_date = published_date.split('-')
+        if len(published_date) == 1:
+            date_max = published_date[0] + "-12"
+            date_min = published_date[0] + "-01"
+            all_books = Book.query.filter(Book.published_date >= date_min, Book.published_date < date_max)
+        elif len(published_date) == 2:
+            month_max = str(int(published_date[1]) + 1)
+            date_max = published_date
+            date_filter = '-'.join(published_date)
+            date_max[1] = month_max
+            date_max_filter = '-'.join(date_max)
+            all_books = Book.query.filter(Book.published_date >= date_filter, Book.published_date < date_max_filter)
+        elif len(published_date) == 3:
+            published_date = '-'.join(published_date)
+            all_books = Book.query.filter_by(published_date=published_date)
+        else:
+            return jsonify(response=dict(failure=f"Date should be in format XXXX-XX-XX"))
     else:
         all_books = Book.query.order_by(sort_by)
+        print(type(all_books))
     return render_template("all-books.html", books=all_books)
 
 
@@ -77,7 +102,7 @@ def add_books():
             get_new_books(book=Book, link=link, db=db)
         except KeyError:
             return jsonify(response=dict(failure=f"Sorry we don't have {query} in our library :("))
-    return url_for('show_all_books')
+    return redirect(url_for('show_all_books'))
 
 
 # MAIN

@@ -1,5 +1,6 @@
 import requests
-from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
 
 def get_new_books(book, link, db):
     lib_data = requests.get(link).json()['items']
@@ -8,9 +9,23 @@ def get_new_books(book, link, db):
         new_authors = ""
         new_category = ""
         new_title = item['volumeInfo']['title']
-        for author in item['volumeInfo']['authors']:
-            new_authors = new_authors + author
-        new_date = item['volumeInfo']['publishedDate']
+        try:
+            for author in item['volumeInfo']['authors']:
+                new_authors = new_authors + author
+        except KeyError:
+            new_authors = ""
+        try:
+            new_date = datetime.strptime(item['volumeInfo']['publishedDate'], '%Y-%m-%d').date()
+            new_date_disp = 'd'
+        except ValueError:
+            try:
+                new_date = datetime.strptime(item['volumeInfo']['publishedDate'], '%Y-%m').date()
+                new_date_disp = 'm'
+            except ValueError:
+                new_date = datetime.strptime(item['volumeInfo']['publishedDate'], '%Y').date()
+                new_date_disp = 'y'
+
+        print(new_date)
         try:
             for category in item['volumeInfo']['categories']:
                 new_category = new_category + category
@@ -33,6 +48,7 @@ def get_new_books(book, link, db):
             title=new_title,
             authors=new_authors,
             published_date=new_date,
+            date_to_disp=new_date_disp,
             categories=new_category,
             average_rating=new_avg_rating,
             ratings_count=new_rating_count,
@@ -51,5 +67,4 @@ def get_new_books(book, link, db):
         else:
             db.session.add(new_book)
             db.session.commit()
-        # book.query.filter_by(title=new_title).first()
 

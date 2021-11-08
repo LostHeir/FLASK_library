@@ -20,8 +20,23 @@
             {% for item in books %}
             <tr>
                 <td><a href="{{url_for('book_details', bookid=item.id) }}">{{item.title}}</a></td>
-                <td>{{item.authors}}</td>
-                <td>{{item.published_date}}</td>
+                <td><a href="{{url_for('show_all_books', author=item.authors) }}">
+                    {{item.authors}}</a></td>
+                {% if item.date_to_disp == 'y' %}
+                <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                    {{item.published_date}}</a></td>
+                {% elif item.date_to_disp == 'm' %}
+                    {% if item.published_date.month < 10 %}
+                        <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                        {{item.published_date.year}}-0{{item.published_date.month}}</a></td>
+                    {% else %}
+                        <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                        {{item.published_date.year}}-{{item.published_date.month}}</a></td>
+                    {% endif %}
+                {% else %}
+                <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                    {{item.published_date}}</a></td>
+                {% endif %}
             </tr>
 
             {% endfor %}
