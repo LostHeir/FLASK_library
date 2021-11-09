@@ -9,15 +9,19 @@ DOWNLOAD_LINK = 'https://www.googleapis.com/books/v1/volumes?q='
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
 # Generated from terminal: python -c "import secrets; print(secrets.token_urlsafe(32))"
-app.config["JSON_SORT_KEYS"] = False
+app.config["JSON_SORT_KEYS"] = False  # Disables alphabetical sorting
+app.config['JSON_AS_ASCII'] = False  # Supports UTF-8 enncoding
 
 # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///library.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Gets rid of warnigs about SQLALCHEMY_TRACK_MODIFICATIONS
 db = SQLAlchemy(app)
 
 
 # Create Table
+# __repr__ was used for tests durning development, was left for future testing.
+# Model contains all infomration which was shown in book details example. There is one additional column date_to_disp
+# which is used to display date in original format.
 class Book(db.Model):
     __tablename__ = "library"
     id = db.Column(db.Integer, primary_key=True)
@@ -41,6 +45,7 @@ class Book(db.Model):
 db.create_all()
 
 
+# Routes
 @app.route('/')
 def home():
     return render_template("index.html")
@@ -48,6 +53,12 @@ def home():
 
 @app.route('/books')
 def show_all_books():
+    """Shows all entries from DB. Route can get following arguments:
+    sort_by - used to sort entries, in current application only sort by published date is implemented.
+    authors - a list of authors, used to filter entries related to specific authors.
+    published_date - used to filter entreis related to specific date. The date must be given in a specific format,
+                     otherwise the user will be informed. Allowed parameter formats: YYYY-MM-DD, YYYY-MM, YYYY.
+    """
     sort_by = request.args.get('sort_by', None)
     authors = request.args.getlist('author')
     published_date = request.args.get('published_date', None)
@@ -73,15 +84,15 @@ def show_all_books():
             published_date = '-'.join(published_date)
             all_books = Book.query.filter_by(published_date=published_date)
         else:
-            return jsonify(response=dict(failure=f"Date should be in format XXXX-XX-XX"))
+            return jsonify(response=dict(failure=f"Date should have format: YYYY-MM-DD or YYYY-MM or YYYY"))
     else:
         all_books = Book.query.order_by(sort_by)
-        print(type(all_books))
     return render_template("all-books.html", books=all_books)
 
 
 @app.route('/books/<int:bookid>')
 def book_details(bookid):
+    """Shows book detials in JSON format."""
     selected_book = Book.query.get(bookid)
     return jsonify(title=selected_book.title,
                    authors=selected_book.authors,
@@ -95,6 +106,10 @@ def book_details(bookid):
 
 @app.route('/library', methods=['POST'])
 def add_books():
+    """Adds book to library. Required parameters:
+    q - query to Google Books API.
+    The user will be informed if a request is not fulfilled. (JSON massage)
+    """
     if request.method == 'POST':
         query = request.form.get('q')
         link = DOWNLOAD_LINK + query

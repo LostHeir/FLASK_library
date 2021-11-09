@@ -1,8 +1,17 @@
 import requests
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
 
-def get_new_books(book, link, db):
+def get_new_books(book, link: str, db: SQLAlchemy) -> None:
+    """
+    Passes the query to the Google Book API, retrieves the necessary parameters spiecified in book detial section.
+    So many try-except are used, due to the incompleteness of the data received from the API.
+    :param book: A Book model, which is used in DB.
+    :param link: Link used with GET method to pass query to Google Book API.
+    :param db:  SQLAlchemy DataBase.
+    :return: None.
+    """
     lib_data = requests.get(link).json()['items']
 
     for item in lib_data:
@@ -11,7 +20,8 @@ def get_new_books(book, link, db):
         new_title = item['volumeInfo']['title']
         try:
             for author in item['volumeInfo']['authors']:
-                new_authors = new_authors + author
+                new_authors = new_authors + ',' + author
+            new_authors = new_authors[1:]
         except KeyError:
             new_authors = ""
         try:
@@ -24,8 +34,6 @@ def get_new_books(book, link, db):
             except ValueError:
                 new_date = datetime.strptime(item['volumeInfo']['publishedDate'], '%Y').date()
                 new_date_disp = 'y'
-
-        print(new_date)
         try:
             for category in item['volumeInfo']['categories']:
                 new_category = new_category + category
@@ -67,4 +75,4 @@ def get_new_books(book, link, db):
         else:
             db.session.add(new_book)
             db.session.commit()
-
+    return None
