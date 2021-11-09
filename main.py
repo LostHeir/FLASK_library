@@ -11,6 +11,7 @@ app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
 # Generated from terminal: python -c "import secrets; print(secrets.token_urlsafe(32))"
 app.config["JSON_SORT_KEYS"] = False  # Disables alphabetical sorting
 app.config['JSON_AS_ASCII'] = False  # Supports UTF-8 enncoding
+app.config["DEBUG"] = True  # To pretty print on Heroku.
 
 # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///library.db'
