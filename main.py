@@ -1,3 +1,6 @@
+"""
+Runs Flask Modular Applications with Blueprints.
+"""
 from application import create_app
 
 app = create_app()

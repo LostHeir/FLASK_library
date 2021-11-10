@@ -1,9 +1,14 @@
+"""
+Creates new set of books based on user's query.
+Function is called in route: add_books with POST method.
+"""
+
 import requests
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 
-def get_new_books(book, link: str, db: SQLAlchemy):
+def get_new_books(book, link: str, db: SQLAlchemy) -> None:
     """
     Passes the query to the Google Book API, retrieves the necessary parameters spiecified in book detial section.
     So many try-except are used, due to the incompleteness of the data received from the API.

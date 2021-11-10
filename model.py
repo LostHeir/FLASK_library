@@ -1,7 +1,10 @@
-# Create Table
-# __repr__ was used for tests durning development, was left for future testing.
-# Model contains all infomration which was shown in book details example. There is one additional column date_to_disp
-# which is used to display date in original format.
+"""
+Creates Table,
+ __repr__ method was used for tests durning development, was left for future testing.
+Model contains all infomration which was shown in book details example. There is one additional column date_to_disp
+which is used to display date in original format.
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 

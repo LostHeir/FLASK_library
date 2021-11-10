@@ -1,3 +1,6 @@
+"""
+Contains all routes.
+"""
 from flask import render_template, redirect, url_for, jsonify, request, Blueprint
 from sqlalchemy import or_
 from library_manager import get_new_books
