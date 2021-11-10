@@ -8,7 +8,7 @@
     <div>
     <h1>All Books</h1>
     </div>
-    <form action="{{url_for('add_books')}}" method="post">
+    <form action="{{url_for('library_app.add_books')}}" method="post">
         <label for="q">Ask for books:</label><br>
         <input type="text" id="q" name="q" placeholder="Hobbit" size="30"><br>
         <input type="submit" value="Add">
@@ -18,28 +18,28 @@
             <tr>
                 <th>title</th>
                 <th>authors</th>
-                <th><a href="{{url_for('show_all_books', sort_by='published_date')}}">published_date</a></th>
+                <th><a href="{{url_for('library_app.show_all_books', sort_by='published_date')}}">published_date</a></th>
             </tr>
         </thead>
         <tbody>
             {% for item in books %}
             <tr>
-                <td><a href="{{url_for('book_details', bookid=item.id) }}">{{item.title}}</a></td>
-                <td><a href="{{url_for('show_all_books', author=item.authors) }}">
+                <td><a href="{{url_for('library_app.book_details', bookid=item.id) }}">{{item.title}}</a></td>
+                <td><a href="{{url_for('library_app.show_all_books', author=item.authors) }}">
                     {{item.authors}}</a></td>
                 {% if item.date_to_disp == 'y' %}
-                <td><a href="{{url_for('show_all_books', published_date=item.published_date.year) }}">
+                <td><a href="{{url_for('library_app.show_all_books', published_date=item.published_date.year) }}">
                     {{item.published_date.year}}</a></td>
                 {% elif item.date_to_disp == 'm' %}
                     {% if item.published_date.month < 10 %}
-                        <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                        <td><a href="{{url_for('library_app.show_all_books', published_date=item.published_date) }}">
                         {{item.published_date.year}}-0{{item.published_date.month}}</a></td>
                     {% else %}
-                        <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                        <td><a href="{{url_for('library_app.show_all_books', published_date=item.published_date) }}">
                         {{item.published_date}}</a></td>
                     {% endif %}
                 {% else %}
-                <td><a href="{{url_for('show_all_books', published_date=item.published_date) }}">
+                <td><a href="{{url_for('library_app.show_all_books', published_date=item.published_date) }}">
                     {{item.published_date}}</a></td>
                 {% endif %}
             </tr>

@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 
-def get_new_books(book, link: str, db: SQLAlchemy) -> None:
+def get_new_books(book, link: str, db: SQLAlchemy):
     """
     Passes the query to the Google Book API, retrieves the necessary parameters spiecified in book detial section.
     So many try-except are used, due to the incompleteness of the data received from the API.
@@ -75,4 +75,3 @@ def get_new_books(book, link: str, db: SQLAlchemy) -> None:
         else:
             db.session.add(new_book)
             db.session.commit()
-    return None
